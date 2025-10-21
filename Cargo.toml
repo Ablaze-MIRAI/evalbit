@@ -1,0 +1,7 @@
+[package]
+name = "evalbit"
+version = "0.1.0"
+edition = "2021"
+license = "ISC"
+authors = ["nakanoin19"]
+description = "A simple logical expression evaluation crate with RPN conversion"
