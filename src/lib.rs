@@ -5,7 +5,7 @@
 //! # Quickstart
 //! 
 //! ```
-//! use evalbit::{parse, eval};
+//! use evalbit::{parse, eval, RPNTrait};
 //! 
 //! let expr = "0 ^ (1 | !2)";
 //! let args = &[true, false, true];
@@ -54,6 +54,8 @@ pub trait RPNTrait {
     /// # Example
     /// 
     /// ```
+    /// use evalbit::RPNTrait;
+    /// 
     /// let expr = "0 ^ (1 | !2)";
     /// let rpn = evalbit::parse(expr);
     /// assert_eq!(rpn.to_string(), "0 1 2 ! | ^");
@@ -64,6 +66,8 @@ pub trait RPNTrait {
     /// # Example
     /// 
     /// ```
+    /// use evalbit::RPNTrait;
+    /// 
     /// let expr = "0 ^ (1 | !2)";
     /// let rpn = evalbit::parse(expr);
     /// rpn.print(); // => 0 1 2 ! | ^
@@ -74,6 +78,8 @@ pub trait RPNTrait {
     /// # Example
     /// 
     /// ```
+    /// use evalbit::RPNTrait;
+    /// 
     /// let expr = "0 ^ (1 | !2)";
     /// let rpn = evalbit::parse(expr);
     /// let args = vec![true, false, true];
@@ -131,6 +137,8 @@ impl RPNTrait for Vec<RPNItem> {
 /// # Example
 /// 
 /// ```
+/// use evalbit::RPNTrait;
+/// 
 /// let expr = "0 ^ (1 | !2)";
 /// let rpn = evalbit::parse(expr);
 /// assert_eq!(rpn.to_string(), "0 1 2 ! | ^");
