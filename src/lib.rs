@@ -1,6 +1,25 @@
+//! A simple boolean expression evaluator crate
+//! 
+//! This crate provides functionality to parse and evaluate boolean expressions using Reverse Polish Notation (RPN).
+//! 
+//! # Quickstart
+//! 
+//! ```
+//! use evalbit::{parse, eval};
+//! 
+//! let expr = "0 ^ (1 | !2)";
+//! let args = &[true, false, true];
+//! let rpn = parse(expr);
+//! rpn.print(); // => 0 1 2 ! | ^
+//! assert_eq!(rpn.exec(args), true); // true ^ (false | !true) = true
+//! 
+//! // and you can directly evaluate expressions
+//! assert_eq!(eval(expr, args), true);
+//! ```
+
 use std::collections::VecDeque;
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Clone)]
 enum Token {
     Index(usize),
     Not,
@@ -11,22 +30,60 @@ enum Token {
     RPar,
 }
 
-#[derive(PartialEq, Debug)]
+/// Reverse Polish Notation Item
+/// 
+/// `Vec<RPNItem>` has [RPNTrait] implemented
+#[derive(PartialEq)]
 pub enum RPNItem {
+    /// Index of the argument
     Index(usize),
+    /// Unary NOT operator
     Not,
+    /// Binary AND operator
     And,
+    /// Binary XOR operator
     Xor,
+    /// Binary OR operator
     Or,
 }
 
+/// Trait for Reverse Polish Notation expressions
 pub trait RPNTrait {
+    /// Convert RPN expression to string
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// let expr = "0 ^ (1 | !2)";
+    /// let rpn = evalbit::parse(expr);
+    /// assert_eq!(rpn.to_string(), "0 1 2 ! | ^");
+    /// ```
     fn to_string(&self) -> String;
+    /// Print RPN expression
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// let expr = "0 ^ (1 | !2)";
+    /// let rpn = evalbit::parse(expr);
+    /// rpn.print(); // => 0 1 2 ! | ^
+    /// ```
     fn print(&self);
+    /// Execute RPN expression with given boolean arguments
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// let expr = "0 ^ (1 | !2)";
+    /// let rpn = evalbit::parse(expr);
+    /// let args = vec![true, false, true];
+    /// let result = rpn.exec(&args);
+    /// assert_eq!(result, true); // true ^ (false | !true) = true
+    /// ```
     fn exec(&self, args: &[bool]) -> bool;
 }
 
-impl RPNTrait for VecDeque<RPNItem> {
+impl RPNTrait for Vec<RPNItem> {
     fn to_string(&self) -> String {
         self.iter().map(|item| match item {
             RPNItem::Index(n) => n.to_string(),
@@ -69,10 +126,30 @@ impl RPNTrait for VecDeque<RPNItem> {
     }
 }
 
-pub fn parse(expr: &str) -> VecDeque<RPNItem> {
+/// Parse boolean expression into Reverse Polish Notation
+/// 
+/// # Example
+/// 
+/// ```
+/// let expr = "0 ^ (1 | !2)";
+/// let rpn = evalbit::parse(expr);
+/// assert_eq!(rpn.to_string(), "0 1 2 ! | ^");
+/// ```
+pub fn parse(expr: &str) -> Vec<RPNItem> {
     let tokens = tokenize(expr);
     rpn(&tokens)
 }
+
+/// Evaluate boolean expression with given arguments
+///
+/// # Example
+/// 
+/// ```
+/// let expr = "0 ^ (1 | !2)";
+/// let args = vec![true, false, true];
+/// let result = evalbit::eval(expr, &args);
+/// assert_eq!(result, true); // true ^ (false | !true) = true
+/// ```
 pub fn eval(expr: &str, args: &[bool]) -> bool {
     let rpn_expr = parse(expr);
     rpn_expr.exec(args)
@@ -108,8 +185,8 @@ fn tokenize(expr: &str) -> Vec<Token> {
     tokens
 }
 
-fn rpn(tokens: &[Token]) -> VecDeque<RPNItem> {
-    let mut result = VecDeque::<RPNItem>::new();
+fn rpn(tokens: &[Token]) -> Vec<RPNItem> {
+    let mut result = Vec::<RPNItem>::new();
     let mut ops = VecDeque::<Token>::new();
     let precedence = |op: &Token| match op {
         Token::Not => 3,
@@ -127,12 +204,12 @@ fn rpn(tokens: &[Token]) -> VecDeque<RPNItem> {
     };
     for token in tokens {
         match token {
-            Token::Index(n) => result.push_back(RPNItem::Index(*n)),
+            Token::Index(n) => result.push(RPNItem::Index(*n)),
             Token::Not | Token::And | Token::Xor | Token::Or => {
                 while let Some(top) = ops.back() {
                     if *top != Token::LPar && precedence(top) >= precedence(token) && token != &Token::Not {
                         let op = ops.pop_back().unwrap();
-                        result.push_back(rpnop(&op).unwrap());
+                        result.push(rpnop(&op).unwrap());
                     } else {
                         break;
                     }
@@ -145,14 +222,14 @@ fn rpn(tokens: &[Token]) -> VecDeque<RPNItem> {
                     if top == Token::LPar {
                         break;
                     } else {
-                        result.push_back(rpnop(&top).unwrap());
+                        result.push(rpnop(&top).unwrap());
                     }
                 }
             },
         }
     }
     while let Some(op) = ops.pop_back() {
-        result.push_back(rpnop(&op).unwrap());
+        result.push(rpnop(&op).unwrap());
     }
     result
 }
