@@ -17,8 +17,6 @@
 //! assert_eq!(eval(expr, args), true);
 //! ```
 
-use std::collections::VecDeque;
-
 #[derive(PartialEq, Clone)]
 enum Token {
     Index(usize),
