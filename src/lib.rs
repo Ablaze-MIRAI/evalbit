@@ -195,7 +195,8 @@ fn tokenize(expr: &str) -> Vec<Token> {
 
 fn rpn(tokens: &[Token]) -> Vec<RPNItem> {
     let mut result = Vec::<RPNItem>::new();
-    let mut ops = VecDeque::<Token>::new();
+    let mut ops = Vec::<Token>::new();
+    
     let precedence = |op: &Token| match op {
         Token::Not => 3,
         Token::And => 2,
@@ -214,19 +215,19 @@ fn rpn(tokens: &[Token]) -> Vec<RPNItem> {
         match token {
             Token::Index(n) => result.push(RPNItem::Index(*n)),
             Token::Not | Token::And | Token::Xor | Token::Or => {
-                while let Some(top) = ops.back() {
+                while let Some(top) = ops.last() {
                     if *top != Token::LPar && precedence(top) >= precedence(token) && token != &Token::Not {
-                        let op = ops.pop_back().unwrap();
+                        let op = ops.pop().unwrap();
                         result.push(rpnop(&op).unwrap());
                     } else {
                         break;
                     }
                 }
-                ops.push_back(token.clone());
+                ops.push(token.clone());
             },
-            Token::LPar => ops.push_back(Token::LPar),
+            Token::LPar => ops.push(Token::LPar),
             Token::RPar => {
-                while let Some(top) = ops.pop_back() {
+                while let Some(top) = ops.pop() {
                     if top == Token::LPar {
                         break;
                     } else {
@@ -236,7 +237,7 @@ fn rpn(tokens: &[Token]) -> Vec<RPNItem> {
             },
         }
     }
-    while let Some(op) = ops.pop_back() {
+    while let Some(op) = ops.pop() {
         result.push(rpnop(&op).unwrap());
     }
     result
